@@ -390,8 +390,11 @@ function getSectionGeometry (sx, sy, sz, world, blocksStates) {
       for (cursor.x = sx; cursor.x < sx + 16; cursor.x++) {
         const block = world.getBlock(cursor)
         const biome = block.biome.name
+        const shulkerVariant = getShulkerVariant(block, blocksStates)
         const chestVariant = getChestVariant(block, world, blocksStates)
-        if (chestVariant) {
+        if (shulkerVariant) {
+          block.variant = [shulkerVariant]
+        } else if (chestVariant) {
           block.variant = [chestVariant]
         } else if (block.variant === undefined) {
           block.variant = getModelVariants(block, blocksStates)
@@ -518,6 +521,21 @@ function getModelVariants (block, blockStates) {
   return []
 }
 
+function getShulkerVariant (block, blockStates) {
+  const model = blockStates.__shulkerModels?.[block.name]
+  if (!model) return null
+
+  const rotations = {
+    up: {},
+    down: { x: 180 },
+    north: { x: 90 },
+    south: { x: 270 },
+    west: { z: 270 },
+    east: { z: 90 }
+  }
+  return { model, ...(rotations[block.getProperties().facing] ?? rotations.up) }
+}
+
 function getChestVariant (block, world, blockStates) {
   const models = blockStates.__chestModels?.[block.name]
   if (!models) return null
@@ -545,4 +563,4 @@ function getChestVariant (block, world, blockStates) {
   return { model: models[part], y }
 }
 
-module.exports = { getChestVariant, getSectionGeometry }
+module.exports = { getChestVariant, getSectionGeometry, getShulkerVariant }

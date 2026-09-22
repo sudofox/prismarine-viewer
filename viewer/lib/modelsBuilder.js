@@ -175,6 +175,42 @@ function prepareChestModels (blocksStates, atlas) {
   blocksStates.__chestModels = chestModels
 }
 
+function buildShulkerModel (textureName) {
+  const faces = {}
+  for (const face of ['down', 'up', 'north', 'south', 'west', 'east']) {
+    faces[face] = { texture: '#shulker' }
+  }
+
+  return {
+    textures: { shulker: textureName },
+    elements: [
+      {
+        from: [0, 0, 0],
+        to: [16, 16, 16],
+        faces
+      }
+    ],
+    ao: true
+  }
+}
+
+function shulkerTexture (atlas, name) {
+  return atlas.json.textures[name] ? name : null
+}
+
+function prepareShulkerModels (blocksStates, atlas) {
+  const shulkerModels = {}
+  for (const name of Object.keys(blocksStates)) {
+    if (name !== 'shulker_box' && !name.endsWith('_shulker_box')) continue
+    const textureName = shulkerTexture(atlas, name)
+    if (!textureName) continue
+    const model = buildShulkerModel(textureName)
+    prepareModel(model, atlas.json.textures)
+    shulkerModels[name] = model
+  }
+  blocksStates.__shulkerModels = shulkerModels
+}
+
 function prepareBlocksStates (mcAssets, atlas) {
   const blocksStates = mcAssets.blocksStates
   mcAssets.blocksStates.missing_texture = {
@@ -216,7 +252,8 @@ function prepareBlocksStates (mcAssets, atlas) {
     }
   }
   prepareChestModels(blocksStates, atlas)
+  prepareShulkerModels(blocksStates, atlas)
   return blocksStates
 }
 
-module.exports = { buildChestModel, prepareBlocksStates }
+module.exports = { buildChestModel, buildShulkerModel, prepareBlocksStates }
