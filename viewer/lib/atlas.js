@@ -66,6 +66,16 @@ function makeTextureAtlas (mcAssets) {
         name: `entity/chest/${file.split('.')[0]}`
       })))
   }
+  const shulkerTexturePath = path.join(mcAssets.directory, 'entity', 'shulker')
+  if (fs.existsSync(shulkerTexturePath)) {
+    textureFiles.push(...fs.readdirSync(shulkerTexturePath)
+      .filter(file => file.endsWith('.png'))
+      .map(file => ({
+        basePath: shulkerTexturePath,
+        file,
+        name: `entity/shulker/${file.split('.')[0]}`
+      })))
+  }
   textureFiles.unshift({ basePath: __dirname, file: 'missing_texture.png', name: 'missing_texture' })
 
   // An animated texture reserves a vertical run of frames; a plain one that is

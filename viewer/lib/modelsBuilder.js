@@ -175,27 +175,48 @@ function prepareChestModels (blocksStates, atlas) {
   blocksStates.__chestModels = chestModels
 }
 
-function buildShulkerModel (textureName) {
-  const faces = {}
-  for (const face of ['down', 'up', 'north', 'south', 'west', 'east']) {
-    faces[face] = { texture: '#shulker' }
+function shulkerCuboid (from, to, textureOffset, textureScale) {
+  const [u, v] = textureOffset
+  const width = to[0] - from[0]
+  const height = to[1] - from[1]
+  const depth = to[2] - from[2]
+  const u1 = u + depth
+  const u2 = u1 + width
+  const u3 = u2 + depth
+  const u4 = u3 + width
+  const v1 = v + depth
+  const v2 = v1 + height
+  const uv = {
+    down: [u2 + width, v, u2, v1],
+    up: [u1, v, u2, v1],
+    north: [u3, v1, u4, v2],
+    south: [u1, v1, u2, v2],
+    west: [u, v1, u1, v2],
+    east: [u2, v1, u3, v2]
   }
+  const faces = {}
+  for (const face of Object.keys(uv)) {
+    faces[face] = { texture: '#shulker', uv: uv[face].map(value => value * textureScale) }
+  }
+  return { from, to, faces }
+}
 
+function buildShulkerModel (textureName, textureWidth = 64) {
+  const textureScale = 16 / textureWidth
   return {
     textures: { shulker: textureName },
     elements: [
-      {
-        from: [0, 0, 0],
-        to: [16, 16, 16],
-        faces
-      }
+      shulkerCuboid([0, 0, 0], [16, 8, 16], [0, 28], textureScale),
+      shulkerCuboid([0, 4, 0], [16, 16, 16], [0, 0], textureScale)
     ],
     ao: true
   }
 }
 
 function shulkerTexture (atlas, name) {
-  return atlas.json.textures[name] ? name : null
+  const color = name === 'shulker_box' ? '' : name.replace('_shulker_box', '')
+  const variant = `entity/shulker/shulker${color ? `_${color}` : ''}`
+  return atlas.json.textures[variant] ? variant : null
 }
 
 function prepareShulkerModels (blocksStates, atlas) {
@@ -204,7 +225,8 @@ function prepareShulkerModels (blocksStates, atlas) {
     if (name !== 'shulker_box' && !name.endsWith('_shulker_box')) continue
     const textureName = shulkerTexture(atlas, name)
     if (!textureName) continue
-    const model = buildShulkerModel(textureName)
+    const texture = atlas.json.textures[textureName]
+    const model = buildShulkerModel(textureName, texture.width || 64)
     prepareModel(model, atlas.json.textures)
     shulkerModels[name] = model
   }
